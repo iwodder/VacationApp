@@ -1,6 +1,5 @@
 package com.wodder;
 
-import com.wodder.Airlines.*;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TSimpleServer;
 import org.apache.thrift.transport.TServerSocket;

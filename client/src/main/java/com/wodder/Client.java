@@ -13,13 +13,13 @@ public class Client {
     private static Scanner s = new Scanner(System.in);
     public static void main(String[] args) {
         try {
-            TTransport airline = new TSocket("localhost", 55001);
+            TTransport airline = new TSocket("191.168.0.13", 55001);
             airline.open();
 
-            TTransport car = new TSocket("localhost", 55002);
+            TTransport car = new TSocket("191.168.0.12", 55002);
             car.open();
 
-            TTransport hotel = new TSocket("localhost", 55003);
+            TTransport hotel = new TSocket("191.168.0.11", 55003);
             hotel.open();
 
             TProtocol aProtocol = new TBinaryProtocol(airline);
