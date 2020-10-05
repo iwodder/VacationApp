@@ -12,6 +12,9 @@ COPY ./hotelservice/pom.xml /VacationApp/hotelservice/
 COPY ./client/src /VacationApp/client/src
 COPY ./client/pom.xml /VacationApp/client/
 
+COPY ./loggingservice/src /VacationApp/loggingservice/src
+COPY ./loggingservice/pom.xml /VacationApp/loggingservice/
+
 COPY ./pom.xml /VacationApp/
 
 WORKDIR /VacationApp/
