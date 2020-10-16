@@ -9,7 +9,6 @@ import org.apache.thrift.TException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -17,6 +16,7 @@ public class HotelHandler implements Hotels.Iface {
 
     private final KafkaProducer<String, String> hotelProducer;
     private String serverIp;
+    private final HotelDao hotelDao;
 
     public HotelHandler() {
         Properties props = new Properties();
@@ -30,23 +30,24 @@ public class HotelHandler implements Hotels.Iface {
             e.printStackTrace();
             serverIp = "";
         }
-
+        hotelDao = new HotelDao();
+        hotelDao.connectToCollection();
     }
 
     @Override
     public boolean RemoveReservation(long reservationNum) throws TException {
         createLogMessage( "Entering >>> HotelHandler.RemoveReservation(), params [%d]", reservationNum);
-        System.out.printf("Removing hotel reservation %d%n", reservationNum);
+        boolean result = hotelDao.removeReservation(reservationNum);
         createLogMessage( "Exiting <<< HotelHandler.RemoveReservation()");
-        return true;
+        return result;
     }
 
     @Override
     public boolean AddReservation(long airlineId, String name) throws TException {
         createLogMessage( "Entering >>> HotelHandler.AddReservation(), params [%d, %s]", airlineId, name);
-        System.out.printf("Adding hotel reservation for %s on hotelId[%d]%n", name, airlineId);
+        boolean result = hotelDao.bookHotel(airlineId, name);
         createLogMessage("Exiting <<< HotelHandler.AddReservation()");
-        return false;
+        return result;
     }
 
     @Override
@@ -59,8 +60,9 @@ public class HotelHandler implements Hotels.Iface {
     @Override
     public List<String> GetList() throws TException {
         createLogMessage( "Entering >>> HotelHandler.GetList(), params []");
+        List<String> results = hotelDao.getAllHotels();
         createLogMessage("Exiting <<< HotelHandler.GetList()");
-        return new ArrayList<>();
+        return results;
     }
 
     private void createLogMessage(String msg, Object ... a) {

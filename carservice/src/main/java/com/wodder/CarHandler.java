@@ -17,6 +17,7 @@ public class CarHandler implements Cars.Iface {
 
     private final KafkaProducer<String, String> carProducer;
     private String serverIp;
+    private CarDao carDao;
 
     public CarHandler() {
         Properties props = new Properties();
@@ -31,22 +32,24 @@ public class CarHandler implements Cars.Iface {
             serverIp = "";
         }
 
+        carDao = new CarDao();
+        carDao.connectToCollection();
     }
 
     @Override
     public boolean RemoveReservation(long reservationNum) throws TException {
         createLogMessage( "Entering >>> CarHandler.RemoveReservation(), params [%d]", reservationNum);
-        System.out.printf("Removing car reservation number %d%n", reservationNum);
+        boolean result = carDao.removeReservation(reservationNum);
         createLogMessage( "Exiting <<< CarHandler.RemoveReservation()");
-        return false;
+        return result;
     }
 
     @Override
     public boolean AddReservation(long airlineId, String name) throws TException {
         createLogMessage( "Entering >>> CarHandler.AddReservation(), params [%d, %s]", airlineId, name);
-        System.out.printf("Adding car reservation for %s on carId[%d]%n", name, airlineId);
+        boolean result = carDao.bookCar(airlineId, name);
         createLogMessage("Exiting <<< CarHandler.AddReservation()");
-        return true;
+        return result;
     }
 
     @Override
@@ -59,8 +62,9 @@ public class CarHandler implements Cars.Iface {
     @Override
     public List<String> GetList() throws TException {
         createLogMessage( "Entering >>> CarHandler.GetList(), params []");
+        List<String> results = carDao.getAllCars();
         createLogMessage("Exiting <<< CarHandler.GetList()");
-        return new ArrayList<>();
+        return results;
     }
 
     private void createLogMessage(String msg, Object ... a) {

@@ -7,6 +7,7 @@ import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 
 import java.util.Scanner;
+import java.util.function.Consumer;
 
 public class Client {
     static TTransport[] airlines = new TTransport[2];
@@ -35,27 +36,28 @@ public class Client {
             TProtocol hProtocol = new TBinaryProtocol(hotel);
             hClient = new Hotels.Client(hProtocol);
 
-            System.out.println("Current airline reservations: " + getClient().GetList().toString());
+            System.out.println("Current airline reservations: ");
+            getClient().GetList().forEach(AVAILABILITY_PRINTER);
             System.out.println("Adding airline reservation....");
-            getClient().AddReservation(1L, "John Doe");
+            getClient().AddReservation(132L, "John Doe");
             System.out.println("Adding airline reservation....");
-            getClient().AddReservation(2L, "John Smith");
-            System.out.println("Adding airline reservation....");
-            getClient().AddReservation(1L, "Jane Doe");
+            getClient().AddReservation(234L, "John Smith");
 
             System.out.println("Enter to continue...");
             s.nextLine();
 
-            System.out.println("Current car reservations: " + cClient.GetList().toString());
+            System.out.println("Current car reservations: ");
+            cClient.GetList().forEach(AVAILABILITY_PRINTER);
             System.out.println("Adding car reservation....");
-            cClient.AddReservation(1L, "John Doe");
+            cClient.AddReservation(53L, "John Doe");
 
             System.out.println("Enter to continue...");
             s.nextLine();
 
-            System.out.println("Current hotel reservations: " + hClient.GetList().toString());
+            System.out.println("Current hotel reservations: ");
+            hClient.GetList().forEach(AVAILABILITY_PRINTER);
             System.out.println("Adding hotel reservation....");
-            hClient.AddReservation(1L, "John Doe");
+            hClient.AddReservation(987L, "John Doe");
 
             long airlineReservationId = 3L;
             long carReservationId = 2L;
@@ -87,6 +89,11 @@ public class Client {
             e.printStackTrace();
         }
     }
+
+    private static final Consumer<String> AVAILABILITY_PRINTER = (r) -> {
+        System.out.print("\t");
+        System.out.println(r);
+    };
 
     public static Airlines.Client getClient() {
         idx = ((++idx) % airlines.length);

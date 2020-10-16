@@ -3,20 +3,20 @@ package com.wodder;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.thrift.TException;
 
+import java.awt.Rectangle;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
 public class AirlineHandler implements Airlines.Iface {
 
     private final KafkaProducer<String, String> airlineProducer;
+    private final AirlineDao airlineDAO;
     private String serverIp;
 
     public AirlineHandler() {
@@ -31,23 +31,24 @@ public class AirlineHandler implements Airlines.Iface {
             e.printStackTrace();
             serverIp = "";
         }
-
+        airlineDAO = new AirlineDao();
+        airlineDAO.connectToCollection();
     }
 
     @Override
     public boolean RemoveReservation(long reservationNum) throws TException {
         createLogMessage( "Entering >>> AirlineHandler.RemoveReservation(), params [%d]", reservationNum);
-        System.out.printf("Removing airline reservation number %d%n", reservationNum);
+        boolean result = airlineDAO.removeReservation(reservationNum);
         createLogMessage( "Exiting <<< AirlineHandler.RemoveReservation()");
-        return false;
+        return result;
     }
 
     @Override
     public boolean AddReservation(long airlineId, String name) throws TException {
         createLogMessage( "Entering >>> AirlineHandler.AddReservation(), params [%d, %s]", airlineId, name);
-        System.out.printf("Adding airline reservation for %s on airlineId[%d]%n", name, airlineId);
+        boolean result = airlineDAO.bookFlight(airlineId, name);
         createLogMessage("Exiting <<< AirlineHandler.AddReservation()");
-        return false;
+        return result;
     }
 
     @Override
@@ -60,8 +61,9 @@ public class AirlineHandler implements Airlines.Iface {
     @Override
     public List<String> GetList() throws TException {
         createLogMessage( "Entering >>> AirlineHandler.GetList(), params []");
+        List<String> results = airlineDAO.getAllAirlines();
         createLogMessage("Exiting <<< AirlineHandler.GetList()");
-        return new ArrayList<>();
+        return results;
     }
 
     private void createLogMessage(String msg, Object ... a) {
