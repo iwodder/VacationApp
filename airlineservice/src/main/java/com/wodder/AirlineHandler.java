@@ -6,7 +6,6 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.thrift.TException;
 
-import java.awt.Rectangle;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.LocalDateTime;
@@ -16,15 +15,15 @@ import java.util.Properties;
 public class AirlineHandler implements Airlines.Iface {
 
     private final KafkaProducer<String, String> airlineProducer;
+    private final KafkaProducer<String, String> msgProducer;
     private final AirlineDao airlineDAO;
     private String serverIp;
 
     public AirlineHandler() {
-        Properties props = new Properties();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "192.168.0.133:9092");
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        Properties props = getAirlineProps();
+        Properties props2 = msgProducerProps();
         airlineProducer = new KafkaProducer<>(props);
+        msgProducer = new KafkaProducer<>(props2);
         try {
             serverIp = InetAddress.getLocalHost().getHostAddress();
         } catch (UnknownHostException e) {
@@ -33,6 +32,22 @@ public class AirlineHandler implements Airlines.Iface {
         }
         airlineDAO = new AirlineDao();
         airlineDAO.connectToCollection();
+    }
+
+    private Properties getAirlineProps() {
+        Properties props = new Properties();
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "192.168.0.133:9092");
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        return props;
+    }
+
+    private Properties msgProducerProps() {
+        Properties props = new Properties();
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        return props;
     }
 
     @Override
@@ -47,6 +62,7 @@ public class AirlineHandler implements Airlines.Iface {
     public boolean AddReservation(long airlineId, String name) throws TException {
         createLogMessage( "Entering >>> AirlineHandler.AddReservation(), params [%d, %s]", airlineId, name);
         boolean result = airlineDAO.bookFlight(airlineId, name);
+        msgProducer.send(new ProducerRecord<>("test", "Adding new airline reservation"));
         createLogMessage("Exiting <<< AirlineHandler.AddReservation()");
         return result;
     }

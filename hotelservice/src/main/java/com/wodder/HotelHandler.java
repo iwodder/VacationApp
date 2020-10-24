@@ -1,5 +1,6 @@
 package com.wodder;
 
+import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -15,15 +16,15 @@ import java.util.Properties;
 public class HotelHandler implements Hotels.Iface {
 
     private final KafkaProducer<String, String> hotelProducer;
+    private final KafkaProducer<String, String> msgProducer;
     private String serverIp;
     private final HotelDao hotelDao;
 
     public HotelHandler() {
-        Properties props = new Properties();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "192.168.0.133:9092");
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        Properties props = hotelProducerProps();
+        Properties props2 = msgProducerProps();
         hotelProducer = new KafkaProducer<>(props);
+        msgProducer = new KafkaProducer<>(props2);
         try {
             serverIp = InetAddress.getLocalHost().getHostAddress();
         } catch (UnknownHostException e) {
@@ -32,6 +33,22 @@ public class HotelHandler implements Hotels.Iface {
         }
         hotelDao = new HotelDao();
         hotelDao.connectToCollection();
+    }
+
+    private Properties hotelProducerProps() {
+        Properties props = new Properties();
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "192.168.0.133:9092");
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        return props;
+    }
+
+    private Properties msgProducerProps() {
+        Properties props = new Properties();
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        return props;
     }
 
     @Override
@@ -46,6 +63,7 @@ public class HotelHandler implements Hotels.Iface {
     public boolean AddReservation(long airlineId, String name) throws TException {
         createLogMessage( "Entering >>> HotelHandler.AddReservation(), params [%d, %s]", airlineId, name);
         boolean result = hotelDao.bookHotel(airlineId, name);
+        msgProducer.send(new ProducerRecord<>("test", "Hotel reservation added."));
         createLogMessage("Exiting <<< HotelHandler.AddReservation()");
         return result;
     }
