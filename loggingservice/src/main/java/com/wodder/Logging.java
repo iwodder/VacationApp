@@ -21,7 +21,7 @@ public class Logging {
     public static void main(String[] args) {
         try {
             Properties props = new Properties();
-            props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "192.168.0.133:9092");
+            props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "192.168.0.133:9091");
             props.put(ConsumerConfig.GROUP_ID_CONFIG, "test");
             props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
             props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
